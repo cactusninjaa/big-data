@@ -1,0 +1,55 @@
+# Dépendances
+node_modules/
+.pnp
+.pnp.js
+
+# Fichiers de build et de production
+dist/
+build/
+out/
+.next/
+.nuxt/
+.cache/
+
+# Variables d'environnement (très important pour la sécurité)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs et débogage
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+logs/
+*.log
+
+# Tests et couverture de code
+coverage/
+.nyc_output/
+
+# Système d'exploitation (macOS / Windows / Linux)
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+
+# Éditeurs de code / IDE
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Fichiers temporaires TypeScript
+*.tsbuildinfo
