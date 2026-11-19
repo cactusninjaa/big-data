@@ -352,6 +352,19 @@ for (const [city, zip, street, country] of cities) {
   }
 }
 
+// Garantie : au moins MIN_PAID_CLIENTS clients avec une commande à l'état 'paid'
+// (on passe à 'paid' une commande des clients qui n'en ont pas, jusqu'à atteindre le seuil)
+const MIN_PAID_CLIENTS = 55;
+const paidClients = new Set(orders.filter((o) => o.client_id && o.state === 'paid').map((o) => o.client_id));
+for (const user of users) {
+  if (paidClients.size >= MIN_PAID_CLIENTS) break;
+  if (paidClients.has(user.id)) continue;
+  const order = orders.find((o) => o.client_id === user.id);
+  if (!order) continue;
+  order.state = 'paid';
+  paidClients.add(user.id);
+}
+
 // 13. CART_VARIANT : lignes de paniers en cours + lignes de commandes
 const cartVariants = [];
 // Paniers : ~40 % de paniers non vides
