@@ -214,7 +214,7 @@ cities.forEach(([city, zip, street, country], c) => {
       password: '', // hashé plus bas
       is_active: i !== 13, // un compte désactivé
       default_address_id: null,
-      created_at: daysAgo(int(200, 700)),
+      created_at: daysAgo(int(750, 1000)), // avant la plus ancienne commande
       updated_at: rand() < 0.6 ? daysAgo(int(1, 29)) : null,
     };
     users.push(user);
@@ -303,6 +303,11 @@ const orders = [];
 const userPromoUsed = [];
 const usedPairs = new Set();
 
+// Commandes réparties sur 2 ans ; quelques clients "dormants" n'ont rien commandé depuis plus de 180 jours
+const ORDER_HISTORY_DAYS = 730;
+const DORMANT_AFTER_DAYS = 180;
+const dormantClients = new Set(sample(users, 9).map((u) => u.id));
+
 for (const [city, zip, street, country] of cities) {
   const cityUsers = usersByCity.get(city);
   const nOrders = int(MIN_ORDERS_PER_CITY, MAX_ORDERS_PER_CITY);
@@ -336,7 +341,9 @@ for (const [city, zip, street, country] of cities) {
       }
     }
 
-    const orderAt = daysAgo(int(1, 180));
+    const orderAt = user && dormantClients.has(user.id)
+      ? daysAgo(int(DORMANT_AFTER_DAYS + 20, ORDER_HISTORY_DAYS))
+      : daysAgo(int(1, ORDER_HISTORY_DAYS));
     const order = {
       id: randomUUID(),
       order_at: orderAt,
@@ -369,6 +376,13 @@ for (const user of users) {
   if (!order) continue;
   order.state = 'paid';
   paidClients.add(user.id);
+}
+
+// Garantie : chaque client dormant a déjà acheté (au moins une commande payée / expédiée / livrée)
+const purchasedStates = ['paid', 'shipped', 'delivered'];
+for (const id of dormantClients) {
+  const own = orders.filter((o) => o.client_id === id);
+  if (own.length && !own.some((o) => purchasedStates.includes(o.state))) own[0].state = 'delivered';
 }
 
 // 13. CART_VARIANT : lignes de paniers en cours + lignes de commandes
