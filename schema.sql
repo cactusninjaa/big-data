@@ -71,6 +71,7 @@ CREATE TABLE "address" (
     "zip_code" VARCHAR(255) NOT NULL,
     "street_name" VARCHAR(255) NOT NULL,
     "number" VARCHAR(255) NOT NULL,
+    "city" VARCHAR(255) NOT NULL,
     "country" VARCHAR(255) NOT NULL
 );
 
@@ -133,6 +134,7 @@ CREATE TABLE "address_order" (
     "zip_code" VARCHAR(255) NOT NULL,
     "street_name" VARCHAR(255) NOT NULL,
     "number" VARCHAR(255) NOT NULL,
+    "city" VARCHAR(255) NOT NULL,
     "country" VARCHAR(255) NOT NULL
 );
 

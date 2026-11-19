@@ -141,50 +141,86 @@ for (const p of catalog) {
   });
 }
 
-// 6. USER
+// 6. USER — 20 villes, 3 clients par ville (le 1er client des 15 premières villes est un "personnage" fixe)
+const cities = [
+  // [ville, code postal, rue, pays]
+  ['Paris', '75011', 'rue Oberkampf', 'France'],
+  ['Lyon', '69002', 'rue de la République', 'France'],
+  ['Marseille', '13001', 'La Canebière', 'France'],
+  ['Bordeaux', '33000', 'cours de l\'Intendance', 'France'],
+  ['Lille', '59000', 'rue Faidherbe', 'France'],
+  ['Nantes', '44000', 'rue Crébillon', 'France'],
+  ['Toulouse', '31000', 'rue d\'Alsace-Lorraine', 'France'],
+  ['Strasbourg', '67000', 'rue des Grandes Arcades', 'France'],
+  ['Montpellier', '34000', 'rue de la Loge', 'France'],
+  ['Bruxelles', '1000', 'rue Neuve', 'Belgique'],
+  ['Genève', '1204', 'rue du Rhône', 'Suisse'],
+  ['Rennes', '35000', 'rue Le Bastard', 'France'],
+  ['Nice', '06000', 'avenue Jean Médecin', 'France'],
+  ['Luxembourg', 'L-1660', 'Grand-Rue', 'Luxembourg'],
+  ['Grenoble', '38000', 'rue Félix Poulat', 'France'],
+  ['Dijon', '21000', 'rue de la Liberté', 'France'],
+  ['Reims', '51100', 'place Drouet-d\'Erlon', 'France'],
+  ['Boulogne-Billancourt', '92100', 'rue de Paris', 'France'],
+  ['Tours', '37000', 'rue Nationale', 'France'],
+  ['Clermont-Ferrand', '63000', 'rue du Port', 'France'],
+];
+
 const people = [
-  ['Camille', 'Martin', 'Paris', '75011', 'rue Oberkampf', 'France'],
-  ['Lucas', 'Bernard', 'Lyon', '69002', 'rue de la République', 'France'],
-  ['Léa', 'Dubois', 'Marseille', '13001', 'La Canebière', 'France'],
-  ['Hugo', 'Thomas', 'Bordeaux', '33000', 'cours de l\'Intendance', 'France'],
-  ['Chloé', 'Robert', 'Lille', '59000', 'rue Faidherbe', 'France'],
-  ['Nathan', 'Richard', 'Nantes', '44000', 'rue Crébillon', 'France'],
-  ['Inès', 'Petit', 'Toulouse', '31000', 'rue d\'Alsace-Lorraine', 'France'],
-  ['Théo', 'Durand', 'Strasbourg', '67000', 'rue des Grandes Arcades', 'France'],
-  ['Manon', 'Leroy', 'Montpellier', '34000', 'rue de la Loge', 'France'],
-  ['Yanis', 'Moreau', 'Bruxelles', '1000', 'rue Neuve', 'Belgique'],
-  ['Sarah', 'Simon', 'Genève', '1204', 'rue du Rhône', 'Suisse'],
-  ['Louis', 'Laurent', 'Rennes', '35000', 'rue Le Bastard', 'France'],
-  ['Jade', 'Lefebvre', 'Nice', '06000', 'avenue Jean Médecin', 'France'],
-  ['Adam', 'Michel', 'Luxembourg', 'L-1660', 'Grand-Rue', 'Luxembourg'],
-  ['Emma', 'Garcia', 'Grenoble', '38000', 'rue Félix Poulat', 'France'],
+  ['Camille', 'Martin'], ['Lucas', 'Bernard'], ['Léa', 'Dubois'], ['Hugo', 'Thomas'], ['Chloé', 'Robert'],
+  ['Nathan', 'Richard'], ['Inès', 'Petit'], ['Théo', 'Durand'], ['Manon', 'Leroy'], ['Yanis', 'Moreau'],
+  ['Sarah', 'Simon'], ['Louis', 'Laurent'], ['Jade', 'Lefebvre'], ['Adam', 'Michel'], ['Emma', 'Garcia'],
+];
+const firstnames = [
+  'Alice', 'Gabriel', 'Louise', 'Raphaël', 'Ambre', 'Arthur', 'Rose', 'Jules', 'Anna', 'Maël',
+  'Lina', 'Noah', 'Mia', 'Tom', 'Julia', 'Sacha', 'Zoé', 'Paul', 'Lou', 'Malik', 'Eva', 'Nolan',
+];
+const lastnames = [
+  'Fontaine', 'Mercier', 'Benali', 'Roux', 'Fournier', 'Girard', 'Bonnet', 'Lambert', 'Faure', 'Rousseau',
+  'Blanc', 'Guerin', 'Muller', 'Henry', 'Roussel', 'Nicolas', 'Perrin', 'Morin', 'Mathieu', 'Clement',
 ];
 
 const strip = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+const emailCount = new Map();
+const makeEmail = (firstname, lastname) => {
+  const base = `${strip(firstname)}.${strip(lastname)}`.replace(/[^a-z.]/g, '');
+  const n = (emailCount.get(base) || 0) + 1;
+  emailCount.set(base, n);
+  return `${base}${n > 1 ? n : ''}@${pick(['gmail.com', 'outlook.fr', 'yahoo.fr', 'proton.me', 'free.fr'])}`;
+};
+const makePhone = () => `+33 6 ${int(10, 99)} ${int(10, 99)} ${int(10, 99)} ${int(10, 99)}`;
+
+const USERS_PER_CITY = 3;
 const users = [];
 const addresses = [];
+const usersByCity = new Map(cities.map(([city]) => [city, []]));
 
-for (const [i, [firstname, lastname, city, zip, street, country]] of people.entries()) {
-  const user = {
-    id: randomUUID(),
-    firstname,
-    lastname,
-    phone: `+33 6 ${String(int(10, 99))} ${String(int(10, 99))} ${String(int(10, 99))} ${String(int(10, 99))}`,
-    email: `${strip(firstname)}.${strip(lastname)}@${pick(['gmail.com', 'outlook.fr', 'yahoo.fr', 'proton.me', 'free.fr'])}`,
-    password: '', // hashé plus bas
-    is_active: i !== 13, // un compte désactivé
-    default_address_id: null,
-    created_at: daysAgo(int(30, 700)),
-    updated_at: rand() < 0.6 ? daysAgo(int(1, 29)) : null,
-  };
-  users.push(user);
+cities.forEach(([city, zip, street, country], c) => {
+  for (let k = 0; k < USERS_PER_CITY; k++) {
+    const i = users.length;
+    const [firstname, lastname] = k === 0 && people[c] ? people[c] : [pick(firstnames), pick(lastnames)];
+    const user = {
+      id: randomUUID(),
+      firstname,
+      lastname,
+      phone: makePhone(),
+      email: makeEmail(firstname, lastname),
+      password: '', // hashé plus bas
+      is_active: i !== 13, // un compte désactivé
+      default_address_id: null,
+      created_at: daysAgo(int(200, 700)),
+      updated_at: rand() < 0.6 ? daysAgo(int(1, 29)) : null,
+    };
+    users.push(user);
+    usersByCity.get(city).push(user);
 
-  // 7. ADDRESS : adresse principale + parfois une adresse "Travail"
-  addresses.push({ id: randomUUID(), user_id: user.id, name: 'Domicile', zip_code: zip, street_name: `${street}, ${city}`, number: String(int(1, 150)), country });
-  if (i % 3 === 0) {
-    addresses.push({ id: randomUUID(), user_id: user.id, name: 'Travail', zip_code: zip, street_name: `boulevard Haussmann, ${city}`, number: String(int(1, 80)), country });
+    // 7. ADDRESS : adresse principale + parfois une adresse "Travail" (même ville)
+    addresses.push({ id: randomUUID(), user_id: user.id, name: 'Domicile', zip_code: zip, street_name: street, number: String(int(1, 150)), city, country });
+    if (i % 3 === 0) {
+      addresses.push({ id: randomUUID(), user_id: user.id, name: 'Travail', zip_code: zip, street_name: 'boulevard Haussmann', number: String(int(1, 80)), city, country });
+    }
   }
-}
+});
 
 // 8. DISCOUNT : remises variante / catégorie / panier, certaines expirées
 const discountDefs = [
@@ -249,66 +285,77 @@ const promoExcluded = [
 // 10. CART (un panier par client, client_id UNIQUE)
 const carts = users.map((u) => ({ id: randomUUID(), client_id: u.id }));
 
-// 11 & 12. ADDRESS_ORDER + ORDER
-const states = ['pending', 'paid', 'shipped', 'delivered', 'cancelled'];
+
+// 11 & 12. ADDRESS_ORDER + ORDER : 30 à 45 commandes par ville (=> 20 villes avec >= 30 commandes)
+const MIN_ORDERS_PER_CITY = 30;
+const MAX_ORDERS_PER_CITY = 45;
+const states = ['pending', 'paid', 'shipped', 'shipped', 'delivered', 'delivered', 'delivered', 'cancelled'];
 const usablePromos = ['BIENVENUE10', 'SNEAK15', 'HIVER20', 'NEWS8', 'BLACKFRIDAY35', 'TEE22', 'ACC12', 'FEMME18'];
+const isExcluded = (promo, user) => promoExcluded.some((e) => e.promo_code_id === promo.id && e.user_id === user.id);
 const addressOrders = [];
 const orders = [];
 const userPromoUsed = [];
 const usedPairs = new Set();
 
-for (let i = 0; i < 15; i++) {
-  const isGuest = i % 5 === 4; // 3 commandes invitées
-  const user = isGuest ? null : users[i % users.length];
-  const guest = isGuest ? pick([
-    ['Paul', 'Fontaine', 'paul.fontaine@gmail.com', '+33 7 12 34 56 78', '92100', 'rue de Paris, Boulogne-Billancourt'],
-    ['Zoé', 'Mercier', 'zoe.mercier@outlook.fr', '+33 6 98 76 54 32', '21000', 'rue de la Liberté, Dijon'],
-    ['Malik', 'Benali', 'malik.benali@proton.me', '+33 6 45 67 89 01', '51100', 'place Drouet-d\'Erlon, Reims'],
-  ]) : null;
+for (const [city, zip, street, country] of cities) {
+  const cityUsers = usersByCity.get(city);
+  const nOrders = int(MIN_ORDERS_PER_CITY, MAX_ORDERS_PER_CITY);
 
-  // Snapshot d'adresse (copie de l'adresse du client ou adresse invitée)
-  const src = user ? addresses.find((a) => a.user_id === user.id) : null;
-  const ao = src
-    ? { id: randomUUID(), name: src.name, zip_code: src.zip_code, street_name: src.street_name, number: src.number, country: src.country }
-    : { id: randomUUID(), name: 'Livraison', zip_code: guest[4], street_name: guest[5], number: String(int(1, 60)), country: 'France' };
-  addressOrders.push(ao);
+  for (let n = 0; n < nOrders; n++) {
+    const isGuest = rand() < 0.15; // ~15 % de commandes invitées
+    const user = isGuest ? null : pick(cityUsers);
+    const guest = isGuest
+      ? (() => {
+          const [firstname, lastname] = [pick(firstnames), pick(lastnames)];
+          return { firstname, lastname, email: `${strip(firstname)}.${strip(lastname)}.${int(1, 999)}@gmail.com`, phone: `+33 7 ${int(10, 99)} ${int(10, 99)} ${int(10, 99)} ${int(10, 99)}` };
+        })()
+      : null;
 
-  // Code promo sur la plupart des commandes, sans réutilisation par le même client
-  let promo = null;
-  if (i % 4 !== 3) {
-    const candidate = promoByCode(pick(usablePromos));
-    const key = `${user?.id}-${candidate.id}`;
-    if (!user || !usedPairs.has(key)) {
-      promo = candidate;
-      if (user) usedPairs.add(key);
+    // Snapshot d'adresse (copie d'une adresse du client, ou adresse invitée dans la même ville)
+    const src = user ? pick(addresses.filter((a) => a.user_id === user.id)) : null;
+    const ao = src
+      ? { id: randomUUID(), name: src.name, zip_code: src.zip_code, street_name: src.street_name, number: src.number, city: src.city, country: src.country }
+      : { id: randomUUID(), name: 'Livraison', zip_code: zip, street_name: street, number: String(int(1, 60)), city, country };
+    addressOrders.push(ao);
+
+    // Code promo sur ~1 commande sur 3 : pas de réutilisation par le même client, respect de max_usage et des exclusions
+    let promo = null;
+    if (rand() < 0.35) {
+      const candidate = promoByCode(pick(usablePromos));
+      const key = `${user?.id}-${candidate.id}`;
+      const underLimit = candidate.max_usage === null || candidate.usage_counter < candidate.max_usage;
+      if (underLimit && (!user || (!usedPairs.has(key) && !isExcluded(candidate, user)))) {
+        promo = candidate;
+        if (user) usedPairs.add(key);
+      }
     }
-  }
 
-  const orderAt = daysAgo(int(1, 180));
-  const order = {
-    id: randomUUID(),
-    order_at: orderAt,
-    state: states[i % states.length],
-    client_id: user ? user.id : null,
-    email: user ? user.email : guest[2],
-    phone: user ? user.phone : guest[3],
-    firstname: user ? user.firstname : guest[0],
-    lastname: user ? user.lastname : guest[1],
-    address_order_id: ao.id,
-    promo_code_id: promo ? promo.id : null,
-  };
-  orders.push(order);
+    const orderAt = daysAgo(int(1, 180));
+    const order = {
+      id: randomUUID(),
+      order_at: orderAt,
+      state: pick(states),
+      client_id: user ? user.id : null,
+      email: user ? user.email : guest.email,
+      phone: user ? user.phone : guest.phone,
+      firstname: user ? user.firstname : guest.firstname,
+      lastname: user ? user.lastname : guest.lastname,
+      address_order_id: ao.id,
+      promo_code_id: promo ? promo.id : null,
+    };
+    orders.push(order);
 
-  if (promo) {
-    promo.usage_counter++;
-    if (user) userPromoUsed.push({ user_id: user.id, promo_code_id: promo.id, used_at: orderAt });
+    if (promo) {
+      promo.usage_counter++;
+      if (user) userPromoUsed.push({ user_id: user.id, promo_code_id: promo.id, used_at: orderAt });
+    }
   }
 }
 
 // 13. CART_VARIANT : lignes de paniers en cours + lignes de commandes
 const cartVariants = [];
-// Paniers : 10 paniers non vides
-for (const cart of carts.slice(0, 10)) {
+// Paniers : ~40 % de paniers non vides
+for (const cart of carts.filter(() => rand() < 0.4)) {
   sample(variants, int(1, 2)).forEach((v) =>
     cartVariants.push({ id: randomUUID(), cart_id: cart.id, order_id: null, variant_id: v.id, quantity: int(1, 3) })
   );
