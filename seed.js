@@ -103,6 +103,11 @@ const catalog = [
     variants: [['36', 'Blanc/Marine'], ['40', 'Écru/Rouge']] },
   { ref: 'VJ-CAMPO', name: 'Campo Chromefree', brand: 'Veja', cats: ['Chaussures', 'Baskets', 'Femme'], desc: 'Basket en cuir tanné sans chrome.', base: 150.0,
     variants: [['37', 'Blanc/Nautico'], ['39', 'Extra-white']] },
+  // Nouveautés jamais commandées (exclues des commandes, peuvent être dans des paniers)
+  { ref: 'AD-SAMBA', name: 'Samba OG', brand: 'Adidas', cats: ['Chaussures', 'Baskets'], desc: 'Basket terrace en cuir et daim, semelle gomme.', base: 120.0, neverOrdered: true,
+    variants: [['42', 'Noir/Blanc'], ['44', 'Blanc/Vert']] },
+  { ref: 'PT-TORRENT', name: 'Veste Torrentshell 3L', brand: 'Patagonia', cats: ['Homme', 'Vestes'], desc: 'Veste imperméable 3 couches en nylon recyclé.', base: 180.0, neverOrdered: true,
+    variants: [['M', 'Vert forêt'], ['L', 'Noir']] },
 ];
 
 const products = [];
@@ -126,6 +131,7 @@ for (const p of catalog) {
       name: `${p.name} - ${color} - ${size}`,
       _base: p.base,
       _cat: p.cats,
+      _neverOrdered: !!p.neverOrdered,
     };
     variants.push(variant);
 
@@ -373,9 +379,10 @@ for (const cart of carts.filter(() => rand() < 0.4)) {
     cartVariants.push({ id: randomUUID(), cart_id: cart.id, order_id: null, variant_id: v.id, quantity: int(1, 3) })
   );
 }
-// Commandes : 1 à 3 articles chacune
+// Commandes : 1 à 3 articles chacune (hors variantes jamais commandées)
+const orderableVariants = variants.filter((v) => !v._neverOrdered);
 for (const order of orders) {
-  sample(variants, int(1, 3)).forEach((v) =>
+  sample(orderableVariants, int(1, 3)).forEach((v) =>
     cartVariants.push({ id: randomUUID(), cart_id: null, order_id: order.id, variant_id: v.id, quantity: int(1, 2) })
   );
 }
@@ -384,7 +391,7 @@ for (const order of orders) {
 // Exécution
 // ---------------------------------------------------------------------------
 
-const clean = (rows) => rows.map(({ _base, _cat, ...r }) => r);
+const clean = (rows) => rows.map(({ _base, _cat, _neverOrdered, ...r }) => r);
 
 async function main() {
   const client = new Client({ connectionString: process.env.DATABASE_URL });
